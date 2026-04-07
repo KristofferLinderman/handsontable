@@ -384,6 +384,37 @@ describe('ColHeader', () => {
     expect(topHeaderExample.height()).toEqual(masterHeaderExample.height());
   });
 
+  it('should not let columnHeaderHeight override the actual measured height when content is taller (#12198)', async() => {
+    const style = document.createElement('style');
+
+    style.textContent = '.wrapHeader { white-space: normal !important; overflow: visible !important; }';
+    document.head.appendChild(style);
+
+    spec().$container.css('width', '600px');
+
+    handsontable({
+      data: createSpreadsheetData(3, 11),
+      colWidths: 80,
+      rowHeaders: true,
+      colHeaders(index) {
+        return `Col ${index + 1} really long header`;
+      },
+      columnHeaderHeight: 50,
+      height: 'auto',
+      headerClassName: 'wrapHeader',
+    });
+
+    await sleep(100);
+
+    const masterThead = spec().$container.find('.ht_master thead')[0];
+    const inlineStartThead = spec().$container.find('.ht_clone_inline_start thead')[0];
+
+    expect(masterThead.offsetHeight).toBeGreaterThan(50);
+    expect(Math.abs(inlineStartThead.offsetHeight - masterThead.offsetHeight)).toBeLessThanOrEqual(1);
+
+    style.remove();
+  });
+
   it('should allow defining custom column header height using the columnHeaderHeight config option', async() => {
     handsontable({
       startCols: 3,

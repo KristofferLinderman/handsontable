@@ -471,6 +471,10 @@ class Table {
           columnHeaderHeightSetting)) {
         this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = (columnHeaderHeightSetting[level] || columnHeaderHeightSetting); // eslint-disable-line max-len
       }
+
+      if (currentHeaderHeight > (this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] || 0)) {
+        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+      }
     }
   }
 
