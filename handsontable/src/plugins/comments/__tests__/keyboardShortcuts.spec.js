@@ -334,6 +334,45 @@ describe('Comments keyboard shortcut', () => {
     });
   });
 
+  describe('custom comments context shortcut', () => {
+    it('should execute a shortcut registered in the plugin context while the editor is focused', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        comments: true,
+      });
+
+      await selectCell(1, 1);
+      await keyDownUp(['control', 'alt', 'm']);
+      await waitForNextAnimationFrames(1);
+
+      let wasTriggered = false;
+      const editor = getPlugin('comments').getEditorInputElement();
+      const pluginContext = getShortcutManager().getContext('plugin:comments');
+
+      pluginContext.addShortcut({
+        keys: [['Control/Meta', 'S']],
+        callback: () => {
+          wasTriggered = true;
+        },
+        group: 'test',
+      });
+
+      const keyEvent = new KeyboardEvent('keydown', {
+        key: 's',
+        ctrlKey: true,
+        bubbles: true,
+        cancelable: true,
+      });
+
+      editor.dispatchEvent(keyEvent);
+      await waitForNextAnimationFrames(1);
+
+      expect(wasTriggered).toBe(true);
+    });
+  });
+
   describe('"Cmd/Ctrl" + "Enter"', () => {
     it('should close the comment and save the value (comment opened by keyboard shortcut)', async() => {
       handsontable({

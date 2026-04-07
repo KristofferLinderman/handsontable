@@ -13,6 +13,7 @@ import { deepClone, deepExtend } from '../../helpers/object';
 import { CellRange } from '../../3rdparty/walkontable/src';
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
+import { normalizeEventKey } from '../../shortcuts/utils';
 import CommentEditor from './commentEditor';
 import DisplaySwitch from './displaySwitch';
 import { getEditorAnchorWidth } from './utils';
@@ -851,15 +852,51 @@ export class Comments extends BasePlugin {
       return;
     }
 
-    const { key, ctrlKey, metaKey } = event;
-
-    const isEscape = key === 'Escape';
-    const isCtrlEnter = (ctrlKey || metaKey) && key === 'Enter';
-    const isTab = key === 'Tab';
-
-    if (!isEscape && !isCtrlEnter && !isTab) {
+    if (!this.#isCommentsContextShortcut(event)) {
       event.stopPropagation();
     }
+  }
+
+  /**
+   * Checks if the keydown event has a matching shortcut in the comments context.
+   *
+   * @param {KeyboardEvent} event The keydown event from the comment textarea.
+   * @returns {boolean}
+   */
+  #isCommentsContextShortcut(event) {
+    const shortcutContext = this.hot.getShortcutManager().getContext(SHORTCUTS_CONTEXT_NAME);
+
+    if (!shortcutContext || typeof event.key !== 'string') {
+      return false;
+    }
+
+    const key = normalizeEventKey(event);
+    const modifiers = [];
+
+    if (event.altKey) {
+      modifiers.push('alt');
+    }
+    if (event.ctrlKey) {
+      modifiers.push('control');
+    }
+    if (event.metaKey) {
+      modifiers.push('meta');
+    }
+    if (event.shiftKey) {
+      modifiers.push('shift');
+    }
+
+    if (shortcutContext.hasShortcut([key, ...modifiers])) {
+      return true;
+    }
+
+    if (event.ctrlKey || event.metaKey) {
+      const modifiersWithoutCtrlMeta = modifiers.filter(modifier => modifier !== 'control' && modifier !== 'meta');
+
+      return shortcutContext.hasShortcut([key, ...modifiersWithoutCtrlMeta, 'control/meta']);
+    }
+
+    return false;
   }
 
   /**
