@@ -107,26 +107,3 @@ export function formatTitle(name) {
     .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 }
-
-/**
- * @param {number[]} values
- * @returns {string}
- */
-export function fmtCv(values) {
-  if (!values || values.length < 2) {
-    return '';
-  }
-
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
-
-  if (mean === 0) {
-    return '';
-  }
-
-  const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
-  const stddev = Math.sqrt(variance);
-  const cv = (stddev / Math.abs(mean)) * 100;
-  const warning = cv > 15 ? ' !!!' : '';
-
-  return `${cv.toFixed(1)}%${warning}`;
-}
